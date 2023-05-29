@@ -16,7 +16,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/todolistDB", {useNewUrlParser: true}
 
 const itemsSchema = new mongoose.Schema ({
   _id : Number, 
-  name: String,
+  name: String
 });
 
  // Model Below //
@@ -27,40 +27,47 @@ const Item = new mongoose.model ("Item", itemsSchema)
 const item1 = new Item ({
   _id : 1,
   name: "Welcome to your todolist"
-})
+});
 
 const item2 = new Item ({
   _id : 2,
   name: "Hit the + button to add a new item."
-})
+});
 
 const item3 = new Item ({
   _id : 3,
   name: "<-- Hit this to delete an item"
-})
-
+});
 
 const defaultItems = [item1, item2, item3]
 
-Item.insertMany([defaultItems])
-   .then(function(){
-    console.log("Data inserted")  // Success
-}).catch(function(error){
-    console.log(error)      // Failure
-});
-
+// Item.insertMany(defaultItems).then(function () {
+//   console.log("Successfully saved defult items to DB");
+// }).catch(function (err) {
+//   console.log(err);
+// });
 
 
 app.get("/", function(req, res) {
 
-  Item.find({}).then(function(foundItems){
-    res.render("list", { listTitle: "Today", newListItems: foundItems });
+  Item.find({})
+  .then(foundItem => {
+    if (foundItem.length === 0) {
+      return Item.insertMany(defaultItems);
+    } else {
+      return foundItem;
+    }
   })
-  .catch(function(err){
-    console.log(err);
-  });
+  .then(savedItem => {
+    res.render("list", {
+      listTitle: "Today",
+      newListItems: savedItem
+    });
+  })
+  .catch(err => console.log(err));
 
 });
+
 
 app.post("/", function(req, res){
 
